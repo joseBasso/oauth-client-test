@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Logged</title>
+  </head>
+  <body>
+    <button onclick="myonclick()">Get token</button>
+    <button id="testToken" style="display: none" onclick="getUserInfo()">
+      Get
+    </button>
+  </body>
+</html>
+
+<script>
+  let accessToken;
+
+  function myonclick() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+
+    fetch("http://localhost:8085/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        grant_type: "authorization_code",
+        code,
+        client_id: "CLUTCH",
+        redirect_uri: "http://localhost:8080/jaestaeotokentambem",
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const { access_token } = data;
+
+        accessToken = access_token;
+        document
+          .getElementById("testToken")
+          .setAttribute("style", "display: block");
+      });
+  }
+
+  function getUserInfo() {
+    fetch("http://localhost:8085/userinfo", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + accessToken,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => console.log("data", data));
+  }
+</script>
