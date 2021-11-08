@@ -7,7 +7,12 @@
     <title>Logged</title>
   </head>
   <body>
-    <button onclick="myonclick()">Get token</button>
+    <button onclick="getToken()">Get token</button>
+    <h4>token:</h4>
+    <div id="token"></div>
+    <button onclick="getTokenWithRefresh()">Refresh token</button>
+    <h4>refreshtoken:</h4>
+    <div id="refreshtoken"></div>
     <button id="testToken" style="display: none" onclick="getUserInfo()">
       Get
     </button>
@@ -16,8 +21,9 @@
 
 <script>
   let accessToken;
+  let refreshToken;
 
-  function myonclick() {
+  function getToken() {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
 
@@ -25,22 +31,54 @@
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Basic ${btoa("CLUTCH:password")}`,
       },
       body: JSON.stringify({
         grant_type: "authorization_code",
         code,
         client_id: "CLUTCH",
-        redirect_uri: "http://localhost:8080/jaestaeotokentambem",
+        redirect_uri: "http://localhost:8080/loggedIn",
       }),
     })
       .then((response) => response.json())
       .then((data) => {
-        const { access_token } = data;
+        const { access_token, refresh_token } = data;
 
+        refreshToken = refresh_token;
         accessToken = access_token;
+
+        document.getElementById("token").innerHTML = accessToken;
+        document.getElementById("refreshtoken").innerHTML = refreshToken;
+
         document
           .getElementById("testToken")
           .setAttribute("style", "display: block");
+      });
+  }
+
+  function getTokenWithRefresh() {
+    fetch("http://localhost:8085/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${btoa("CLUTCH:password")}`,
+      },
+      body: JSON.stringify({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        client_id: "CLUTCH",
+        redirect_uri: "http://localhost:8080/loggedIn",
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const { access_token, refresh_token } = data;
+
+        refreshToken = refresh_token;
+        accessToken = access_token;
+
+        document.getElementById("token").innerHTML = accessToken;
+        document.getElementById("refreshtoken").innerHTML = refreshToken;
       });
   }
 
